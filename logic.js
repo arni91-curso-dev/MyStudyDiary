@@ -52,9 +52,11 @@ function formatDate(key) {
 }
 
 // Pasa minutos a texto legible: 268 → "4 h 28 min", 45 → "45 min", 120 → "2 h".
+// Redondea al minuto: datos antiguos con decimales (12.5) se muestran como "13 min".
 function formatMinutes(totalMinutes) {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const rounded = Math.round(totalMinutes);
+  const hours = Math.floor(rounded / 60);
+  const minutes = rounded % 60;
   if (hours === 0) {
     return `${minutes} min`;
   }

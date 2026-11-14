@@ -71,6 +71,12 @@ test("formatMinutes pasa minutos a horas y minutos", () => {
   assert.equal(formatMinutes(0), "0 min");
 });
 
+test("formatMinutes redondea al minuto (datos antiguos con decimales)", () => {
+  assert.equal(formatMinutes(12.5), "13 min");
+  assert.equal(formatMinutes(242.8), "4 h 3 min");
+  assert.equal(formatMinutes(119.6), "2 h");
+});
+
 // ---------- Racha ----------
 
 test("racha: días seguidos que terminan hoy", () => {

@@ -266,6 +266,27 @@ test("rendimiento: 5000 sesiones en menos de 100 ms", () => {
   assert.ok(elapsed < 100, `ha tardado ${elapsed.toFixed(1)} ms`);
 });
 
+test("zona horaria: el mismo día guardado sale igual en cualquier zona", () => {
+  const sessions = sessionsFrom([["2026-11-10", 45], ["2026-11-12", 90]]);
+  const original = process.env.TZ;
+  const resultados = ["Europe/Madrid", "America/New_York", "Asia/Tokyo"].map((zona) => {
+    process.env.TZ = zona;
+    return JSON.stringify(buildHeatMap(sessions, "2026-11-12"));
+  });
+  process.env.TZ = original;
+  assert.equal(new Set(resultados).size, 1);
+});
+
+test("reloj mal puesto: el periodo se mueve con 'hoy' y no falla", () => {
+  const sessions = sessionsFrom([["2026-11-10", 45]]);
+  const adelantado = buildHeatMap(sessions, "2030-01-15"); // la sesión queda antes del periodo
+  assert.equal(adelantado.hasStudy, false);
+  assert.equal(adelantado.weeks.length, 12);
+  const atrasado = buildHeatMap(sessions, "2025-01-15"); // la sesión queda en el futuro
+  assert.equal(atrasado.hasStudy, false);
+  assert.equal(atrasado.weeks.length, 12);
+});
+
 // ---------- T5: detalle y teclado (RF-5) ----------
 
 test("detalle: fecha completa y minutos, o 'sin estudio'", () => {

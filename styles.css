@@ -318,6 +318,12 @@ section + section {
   .heat-cell.is-selected {
     outline-color: Highlight;
   }
+
+  /* El botón no tiene borde y el sistema le quita el fondo: sin esto no se ve dónde está.
+     ".sheet button" gana a la regla general "button { border: none }", que va más abajo. */
+  .sheet button {
+    border: 2px solid ButtonText;
+  }
 }
 
 /* ---------- Formulario ---------- */

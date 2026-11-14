@@ -136,7 +136,7 @@ Los criterios de aceptación usan la notación EARS:
 | 29, 59 o 119 min | Niveles 1, 2 y 3. |
 | Exactamente 30, 60 o 120 min | Niveles 2, 3 y 4. |
 | Minutos con decimales (dato antiguo, por ejemplo 12,5) | Se suman y el total del día se redondea: 12,5 → 13 min, nivel 1. Un día con solo 0,3 min → 0 → "sin estudio", nivel 0. Las sumas como 29,9999 se redondean a 30 → nivel 2. |
-| Decimales en la lista y en "Esta semana" | **Diferencia aceptada:** la lista y el total semanal siguen mostrando el valor sin redondear ("12.5 min"), porque el mapa no cambia su comportamiento. Solo pasa con datos antiguos o dañados; el formulario solo admite minutos enteros. |
+| Decimales en la lista y en "Esta semana" | Todo el diario redondea los minutos al mostrarlos ("12,5" → "13 min"), igual que el mapa. *(Cambio del 2026-11-15: antes se mostraba el valor sin redondear y un total como 242,8 salía "4 h 2.8000000000000114 min" y se salía de la pantalla con el texto al 200 %.)* Solo pasa con datos antiguos o dañados; el formulario solo admite minutos enteros. |
 | Sesiones no válidas y "Esta semana" | **Diferencia aceptada:** el total semanal sigue sumando lo que puede leer de cualquier sesión, aunque no sea válida, y el mapa las ignora. Solo pasa con datos dañados. |
 | El día 1 de un mes es un día futuro de esta semana | No sale la etiqueta de ese mes, porque las etiquetas se basan en los lunes (CA-1.5). |
 | Más de 1440 min en un día (por un error al escribir) | Nivel 4; la línea de detalle muestra el valor real (por ejemplo, "1666 h 40 min") sin romper el diseño. |
@@ -174,7 +174,7 @@ Los criterios de aceptación usan la notación EARS:
 
 - [x] Se cumplen todos los criterios de aceptación de RF-1 a RF-8.
 - [x] Se cumplen los requisitos no funcionales de RNF-1 a RNF-9.
-- [x] Los casos límite de la sección 7 se han comprobado con tests o en el navegador, salvo tres que dependen del sistema y solo se han revisado en el diseño: cambio de zona horaria, página abierta al pasar la medianoche y reloj mal puesto.
+- [x] Todos los casos límite de la sección 7 se han comprobado con tests o en el navegador (la zona horaria y el reloj mal puesto con tests; la medianoche con la página abierta, en Chrome, simulando el cambio de día sin recargar).
 - [x] Las pruebas automáticas de RNF-9 pasan, según la política de pruebas de la constitución.
 - [x] Verificado en el navegador:
   - La funcionalidad, con ratón, teclado y toque.

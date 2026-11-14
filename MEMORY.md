@@ -11,7 +11,7 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 - Estructura:
   - `logic.js`: lógica pura (fechas, formato, estadísticas y mapa) con hoy como parámetro.
   - `app.js`: interfaz; `todayKey()` es lo único que lee el reloj.
-  - `tests/`: 47 tests con `node --test`.
+  - `tests/`: 50 tests con `node --test`.
   - `docs/constitution.md`: 6 principios.
 - Datos en localStorage. Si no se puede guardar, se avisa en el formulario y no se borra lo escrito; con error de validación, el cursor va al campo que falla.
 - Diseño (skill frontend-design): hoja de cuaderno de cuadrícula con margen rojo, tinta azul `#1B3A8C` y fosforito `#FFE94D` animado bajo el número de la racha (única animación; se desactiva con reduced-motion). Fuentes del sistema: Rockwell (slab) en títulos y cifras.
@@ -36,6 +36,4 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 - Capturas con Edge sin ventana (`--headless`): no baja de ~492 px de ancho; para ver el móvil, meter la página en un iframe de 375 px. Usar `--virtual-time-budget` para que terminen las animaciones.
 ## Próximos pasos
 - Flujo SDD: constitución → spec → clarificación → plan → tareas → implementación (una tarea cada vez, tests primero) → validación.
-- Pendientes detectados en la verificación del mapa (fuera de su alcance):
-  - con el texto al 200 %, la línea "Esta semana" se sale 11 px a 375 px;
-  - en modo de alto contraste, el botón "Guardar sesión" pierde el borde.
+- Sin pendientes. Último cambio: `formatMinutes` redondea al minuto (un total con decimales salía "4 h 2.8000000000000114 min" y desbordaba a 200 %) y el botón tiene borde en alto contraste.
