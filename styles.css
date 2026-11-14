@@ -1,0 +1,487 @@
+/* Diseño: una hoja de cuaderno de cuadrícula, escrita con bolígrafo azul
+   y con la racha marcada con fosforito. */
+:root {
+  --desk: #e8edf4;      /* fondo de la mesa, alrededor de la hoja */
+  --paper: #fbfcfe;     /* hoja */
+  --grid: #e3eaf3;      /* líneas de la cuadrícula */
+  --margin-line: #e9a3ab; /* línea roja del margen (solo decorativa) */
+  --ink: #1b3a8c;       /* bolígrafo azul: títulos, cifras y botón */
+  --ink-dark: #142c6b;
+  --text: #2a2f3a;      /* grafito: texto normal */
+  --muted: #5b6475;     /* lápiz: texto secundario */
+  --rule: #c9d4e3;      /* renglones entre filas */
+  --highlighter: #ffe94d;
+  --error: #b3261e;
+
+  /* Mapa de calor: de menos a más minutos. Contraste con el papel: borde del 0 3,15:1;
+     niveles 1-4: 3,11 / 4,89 / 7,45 / 10,07 (mínimo 3:1, spec RNF-2). */
+  --heat-0: #eef2f8;
+  --heat-0-border: #8290a8;
+  --heat-1: #7690c7;
+  --heat-2: #4f6db5;
+  --heat-3: #2f4fa0;
+  --heat-4: #1b3a8c;
+
+  --font-display: Rockwell, "Rockwell Nova", "Roboto Slab", "Bookman Old Style", Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--desk);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+/* ---------- Hoja ---------- */
+
+.sheet {
+  position: relative;
+  max-width: 600px;
+  margin: 32px auto;
+  padding: 36px 32px 48px 64px;
+  background-color: var(--paper);
+  /* Cuadrícula de 24 px */
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(27, 58, 140, 0.12), 0 12px 28px -12px rgba(27, 58, 140, 0.25);
+}
+
+/* Línea roja del margen */
+.sheet::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 44px;
+  width: 2px;
+  background: var(--margin-line);
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+h1 {
+  margin: 0 0 28px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+section + section {
+  margin-top: 44px;
+}
+
+/* ---------- Racha ---------- */
+
+.streak-number {
+  display: flex;
+  align-items: center;
+  gap: 0.12em;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 5.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.streak-icon {
+  font-size: 0.6em;
+}
+
+/* Trazo de fosforito detrás del número */
+.highlight {
+  position: relative;
+  isolation: isolate;
+  padding: 0 0.08em;
+}
+
+.highlight::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -0.04em;
+  right: -0.04em;
+  bottom: 0.06em;
+  height: 0.42em;
+  background: var(--highlighter);
+  border-radius: 0.12em 0.3em 0.18em 0.35em;
+  transform: rotate(-1.5deg);
+  transform-origin: left center;
+  animation: highlight-in 600ms cubic-bezier(0.3, 0.7, 0.2, 1) 250ms both;
+}
+
+@keyframes highlight-in {
+  from {
+    transform: rotate(-1.5deg) scaleX(0);
+  }
+  to {
+    transform: rotate(-1.5deg) scaleX(1);
+  }
+}
+
+.streak-label {
+  margin: 6px 0 0;
+  font-size: 1.15rem;
+  color: var(--muted);
+}
+
+/* Mejor racha, semana y mes: renglones del cuaderno */
+.stats {
+  margin-top: 24px;
+}
+
+.stats p {
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+}
+
+.stats p:first-child {
+  border-top: 1px solid var(--rule);
+}
+
+#best-streak-days,
+#week-minutes-total,
+#month-days-count {
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Mapa de calor ---------- */
+
+/* Solo hace scroll lateral si no cabe (zoom grande). El padding deja sitio a los contornos. */
+.heat-map-scroll {
+  overflow-x: auto;
+  margin: 8px -6px 0;
+  padding: 6px;
+}
+
+/* Rejilla: columna de letras + 12 semanas. Las casillas miden hasta 32 px. */
+.heat-map {
+  display: grid;
+  grid-template-columns: auto repeat(12, minmax(14px, 32px));
+  gap: 4px;
+  border-radius: 4px;
+}
+
+.heat-map:focus {
+  outline: none;
+}
+
+.heat-map:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* Las filas solo agrupan para los lectores de pantalla; la colocación la hace la rejilla. */
+.heat-months,
+.heat-row {
+  display: contents;
+}
+
+.heat-month,
+.heat-day-label {
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.heat-month {
+  align-self: end;
+  padding-bottom: 2px;
+}
+
+.heat-day-label {
+  align-self: center;
+  padding-right: 4px;
+}
+
+.heat-cell,
+.heat-swatch {
+  border-radius: 3px;
+}
+
+.heat-cell {
+  position: relative;
+  aspect-ratio: 1;
+  cursor: pointer;
+}
+
+/* Colores por nivel (casillas y leyenda). */
+.level-0 {
+  background: var(--heat-0);
+  box-shadow: inset 0 0 0 1px var(--heat-0-border);
+}
+
+.level-1 {
+  background: var(--heat-1);
+}
+
+.level-2 {
+  background: var(--heat-2);
+}
+
+.level-3 {
+  background: var(--heat-3);
+}
+
+.level-4 {
+  background: var(--heat-4);
+}
+
+/* Hoy: un punto en el centro. Tinta sobre los niveles claros, papel sobre los oscuros. */
+.heat-cell.is-today::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 32%;
+  height: 32%;
+  margin: auto;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.heat-cell.is-today.level-2::after,
+.heat-cell.is-today.level-3::after,
+.heat-cell.is-today.level-4::after {
+  background: var(--paper);
+}
+
+/* Día seleccionado: contorno por fuera, así nunca tapa el punto de hoy. */
+.heat-cell.is-selected {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.heat-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.heat-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+}
+
+.heat-map-detail {
+  margin: 10px 0 0;
+  min-height: 1.5em;
+  font-weight: 600;
+}
+
+/* Modo de alto contraste: se mantienen los colores y se añaden bordes del sistema. */
+@media (forced-colors: active) {
+  .heat-cell,
+  .heat-swatch {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+  }
+
+  .heat-cell.is-selected {
+    outline-color: Highlight;
+  }
+}
+
+/* ---------- Formulario ---------- */
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+input {
+  font: inherit;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border: 1.5px solid var(--rule);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  touch-action: manipulation;
+}
+
+input::placeholder {
+  color: var(--muted);
+}
+
+input:hover {
+  border-color: #a9b8cd;
+}
+
+input:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+  border-color: var(--ink);
+}
+
+button {
+  align-self: flex-start;
+  font: inherit;
+  font-weight: 700;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 150ms ease;
+}
+
+button:hover {
+  background: var(--ink-dark);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.error {
+  margin: -4px 0 16px;
+  color: var(--error);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.error:empty {
+  display: none;
+}
+
+/* ---------- Lista de sesiones ---------- */
+
+.session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.session-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.session-item:first-child {
+  border-top: 1px solid var(--rule);
+}
+
+.session-item > div {
+  min-width: 0;
+}
+
+.session-topic {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.session-date {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.session-minutes {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* ---------- Móvil ---------- */
+
+@media (max-width: 640px) {
+  .sheet {
+    margin: 0;
+    min-height: 100vh;
+    padding: 28px 16px 40px 44px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .sheet::before {
+    left: 28px;
+  }
+
+  h1 {
+    font-size: 1.7rem;
+  }
+
+  .streak-number {
+    font-size: 4.5rem;
+  }
+
+  button {
+    align-self: stretch;
+  }
+}
+
+/* Sin animaciones si el usuario lo ha pedido en su sistema */
+@media (prefers-reduced-motion: reduce) {
+  .highlight::before {
+    animation: none;
+  }
+
+  button {
+    transition: none;
+  }
+}

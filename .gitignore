@@ -1,0 +1,10 @@
+# Ajustes personales de Claude Code (permisos de cada usuario)
+.claude/settings.local.json
+
+# Archivos de sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Variables de entorno con claves, por si algún día se usan
+.env
