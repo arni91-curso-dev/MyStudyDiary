@@ -1,0 +1,17 @@
+# Revisión de privacidad y tests en cada push y pull request.
+# Sin .privado/ (no está en git) la revisión solo busca formas de claves, no los términos personales.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Revisión de privacidad
+        run: python3 scripts/revisar_privacidad.py
+      - name: Tests
+        run: node --test

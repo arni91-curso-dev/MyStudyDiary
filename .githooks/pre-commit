@@ -1,0 +1,10 @@
+#!/bin/sh
+# Antes de cada commit: revisión de privacidad (términos de .privado/terminos.txt y formas de claves).
+# Se activa una vez por clon con: git config core.hooksPath .githooks
+if command -v uv >/dev/null 2>&1; then
+  exec uv run --no-project python scripts/revisar_privacidad.py
+elif command -v python3 >/dev/null 2>&1; then
+  exec python3 scripts/revisar_privacidad.py
+else
+  exec python scripts/revisar_privacidad.py
+fi

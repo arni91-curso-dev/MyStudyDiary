@@ -8,3 +8,6 @@ desktop.ini
 
 # Variables de entorno con claves, por si algún día se usan
 .env
+
+# Lo privado: términos de la revisión de privacidad
+.privado/
