@@ -44,3 +44,7 @@ Archivos y responsabilidades · Funciones puras (con "hoy" como parámetro) · A
 Máximo 20-30 min por tarea, en orden de dependencia. Si salen más de 10, propón dividir la spec.
 ## Implementación
 Una sola tarea cada vez: tests primero (en rojo), después el código, `node --test` en verde, marcar la tarea y parar.
+## Multiagente (opcional, Claude Code)
+- Agentes en `.claude/agents/`: coordinator (sesión principal, solo coordina y habla con el usuario) → planner (spec, plan y tareas) → implementer (una tarea, tests primero) → reviewer (clarificación y validación). Se arranca con `claude --agent coordinator`; un subagente no puede lanzar subagentes.
+- Cuándo: una funcionalidad con spec. Para cambios pequeños, `/feature` o una sesión normal.
+- Ahorro de tokens: el coordinador pasa rutas y decisiones, no contenidos; un solo reviewer por fase (varios solo si el usuario lo pide); tareas pequeñas de lógica relacionadas, en una sola llamada al implementer si el usuario lo aprueba con las tareas; Chrome DevTools solo en tareas visuales; en la validación, el reviewer se apoya en la verificación visual del implementer; al cerrar, el coordinador informa de los tokens aproximados de los subagentes.
