@@ -122,8 +122,8 @@ function renderWeekMinutes(sessions, today) {
   weekMinutesTotal.textContent = formatMinutes(calculateWeekMinutes(sessions, today));
 }
 
-function renderWeeklyGoal(sessions, today) {
-  const model = buildWeeklyGoalProgress(sessions, today, loadGoal());
+function renderWeeklyGoal(sessions, today, rawGoal) {
+  const model = buildWeeklyGoalProgress(sessions, today, rawGoal);
 
   goalInvite.hidden = model.hasGoal;
   goalProgressText.hidden = !model.hasGoal;
@@ -316,13 +316,14 @@ heatMap.addEventListener("keydown", (event) => {
   selectDay(moveSelection(selectedDateKey, event.key, todayKey()), true);
 });
 
-function render() {
+// rawGoal: el objetivo guardado en bruto. Al arrancar ya se ha leído, así no se lee dos veces.
+function render(rawGoal = loadGoal()) {
   const sessions = loadSessions();
   // Un solo "hoy" para "Esta semana" y el objetivo: así las dos cifras siempre coinciden.
   const today = todayKey();
   renderStreak(sessions);
   renderWeekMinutes(sessions, today);
-  renderWeeklyGoal(sessions, today);
+  renderWeeklyGoal(sessions, today, rawGoal);
   renderMonthDays(sessions);
   renderHeatMap(sessions);
   renderSessions(sessions);
@@ -423,6 +424,7 @@ goalForm.addEventListener("submit", (event) => {
 dateInput.value = todayKey();
 dateInput.max = todayKey();
 // El campo del objetivo muestra lo guardado sin ceros delante ("0300" → "300"), o vacío.
-const savedGoal = parseWeeklyGoal(loadGoal());
+const rawGoal = loadGoal();
+const savedGoal = parseWeeklyGoal(rawGoal);
 goalInput.value = savedGoal.status === "valid" ? String(savedGoal.minutes) : "";
-render();
+render(rawGoal);
