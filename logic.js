@@ -108,11 +108,13 @@ function calculateBestStreak(sessions, todayKey) {
 
 // Suma los minutos de las sesiones desde el lunes de esta semana hasta hoy.
 // Aquí cada sesión cuenta, aunque haya varias el mismo día. Las fechas futuras no suman.
+// Las sesiones dañadas (minutos negativos o no numéricos, fecha no válida) no cuentan,
+// así que el total nunca es negativo.
 function calculateWeekMinutes(sessions, todayKey) {
   const monday = startOfWeekKey(todayKey);
   return sessions
-    .filter((session) => session.date >= monday && session.date <= todayKey)
-    .reduce((total, session) => total + (Number(session.minutes) || 0), 0);
+    .filter((session) => isValidSession(session) && session.date >= monday && session.date <= todayKey)
+    .reduce((total, session) => total + parseMinutes(session.minutes), 0);
 }
 
 // ---------- Mes ----------
@@ -292,6 +294,63 @@ function moveSelection(dateKey, keyName, todayKey) {
   return isInPeriod(target, todayKey) ? target : dateKey;
 }
 
+// ---------- Objetivo semanal ----------
+
+// Minutos que tiene una semana: el objetivo no puede ser mayor.
+const MAX_WEEKLY_GOAL = 10080;
+
+// Clasifica el objetivo en bruto (texto del campo o valor guardado) en
+// { status: "valid", minutes }, { status: "remove" } o { status: "error" }.
+function parseWeeklyGoal(rawValue) {
+  if (typeof rawValue !== "string") {
+    return { status: "error" };
+  }
+  // Solo espacios y tabuladores; trim() quitaría también saltos de línea.
+  const text = rawValue.replace(/^[ \t]+|[ \t]+$/g, "");
+  if (text === "") {
+    return { status: "remove" };
+  }
+  if (!/^[0-9]+$/.test(text)) {
+    return { status: "error" };
+  }
+  const minutes = Number(text); // "0300" → 300
+  if (minutes === 0) {
+    return { status: "remove" };
+  }
+  if (minutes > MAX_WEEKLY_GOAL) {
+    return { status: "error" };
+  }
+  return { status: "valid", minutes };
+}
+
+// Porcentaje del objetivo, redondeado hacia abajo y con un máximo de 100.
+// Recibe el total ya redondeado. Se multiplica antes de dividir para que
+// 300 × 100 / 300 dé 100 exacto y no 99,999…
+function calculateGoalPercent(totalMinutes, goalMinutes) {
+  return Math.min(100, Math.floor((totalMinutes * 100) / goalMinutes));
+}
+
+// Prepara lo que muestra el bloque "Objetivo semanal".
+// Sin objetivo válido → { hasGoal: false }. Con objetivo → total, porcentaje,
+// si está cumplido y el texto: "2 h / 5 h (40 %)" o, cumplido, "5 h / 5 h".
+function buildWeeklyGoalProgress(sessions, todayKey, rawGoal) {
+  const goal = parseWeeklyGoal(rawGoal);
+  if (goal.status !== "valid") {
+    return { hasGoal: false };
+  }
+  const goalMinutes = goal.minutes;
+  // El mismo total que "Esta semana", redondeado al minuto.
+  const totalMinutes = Math.round(calculateWeekMinutes(sessions, todayKey));
+  const isMet = totalMinutes >= goalMinutes;
+  const percent = isMet ? 100 : calculateGoalPercent(totalMinutes, goalMinutes);
+
+  let text = `${formatMinutes(totalMinutes)} / ${formatMinutes(goalMinutes)}`;
+  if (!isMet) {
+    text += ` (${percent} %)`;
+  }
+  return { hasGoal: true, goalMinutes, totalMinutes, percent, isMet, text };
+}
+
 // En Node (tests) exportamos las funciones; en el navegador `module` no existe y no hace nada.
 if (typeof module !== "undefined") {
   module.exports = {
@@ -319,5 +378,9 @@ if (typeof module !== "undefined") {
     buildHeatMap,
     describeDay,
     moveSelection,
+    MAX_WEEKLY_GOAL,
+    parseWeeklyGoal,
+    calculateGoalPercent,
+    buildWeeklyGoalProgress,
   };
 }

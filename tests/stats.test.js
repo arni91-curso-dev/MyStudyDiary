@@ -141,6 +141,101 @@ test("semana: suma desde el lunes hasta hoy, cada sesión cuenta", () => {
   assert.equal(calculateWeekMinutes(sessions, "2026-11-14"), 95);
 });
 
+// Spec 002 (RF-7): las sesiones dañadas no cuentan y el total nunca es negativo.
+
+test("semana: los minutos negativos no cuentan y el total nunca es negativo", () => {
+  const sessions = sessionsFrom([
+    ["2026-11-15", 60],
+    ["2026-11-15", -30],
+  ]);
+  assert.equal(calculateWeekMinutes(sessions, "2026-11-15"), 60);
+  assert.equal(calculateWeekMinutes(sessionsFrom([["2026-11-15", -30]]), "2026-11-15"), 0);
+});
+
+test("semana: minutos no numéricos, vacíos o ausentes no cuentan; texto numérico sí", () => {
+  const sessions = sessionsFrom([
+    ["2026-11-15", "abc"],
+    ["2026-11-15", ""],
+    ["2026-11-15", null],
+    ["2026-11-15"], // sin minutos
+    ["2026-11-15", "45"], // texto con un número: cuenta
+  ]);
+  assert.equal(calculateWeekMinutes(sessions, "2026-11-15"), 45);
+});
+
+test("semana: las fechas que no son AAAA-MM-DD válidas no cuentan", () => {
+  const sessions = sessionsFrom([
+    ["2026-11-1", 30],
+    ["2026-13-01", 30],
+    ["2026-02-30", 30],
+    ["16/11/2026", 30],
+    ["2026-11-10", 20], // válida: cuenta
+  ]);
+  assert.equal(calculateWeekMinutes(sessions, "2026-11-15"), 20);
+});
+
+test("semana: hoy domingo cuenta del lunes 9 al domingo 15", () => {
+  const sessions = sessionsFrom([
+    ["2026-11-08", 100], // domingo anterior: fuera
+    ["2026-11-09", 10],
+    ["2026-11-15", 20],
+  ]);
+  assert.equal(calculateWeekMinutes(sessions, "2026-11-15"), 30);
+});
+
+test("semana: el lunes empieza una semana nueva", () => {
+  const sessions = [
+    { date: "2026-11-15", topic: "Prueba", minutes: 40, createdAt: new Date(2026, 10, 15, 23, 59).getTime() },
+    { date: "2026-11-16", topic: "Prueba", minutes: 25, createdAt: new Date(2026, 10, 16, 0, 30).getTime() },
+  ];
+  assert.equal(calculateWeekMinutes(sessions, "2026-11-16"), 25);
+});
+
+test("semana: semanas con cambio de hora", () => {
+  // Otoño: el domingo 25 de octubre de 2026 cambia la hora; la semana empieza el lunes 19.
+  const october = sessionsFrom([
+    ["2026-10-18", 100], // domingo anterior: fuera
+    ["2026-10-19", 15],
+    ["2026-10-25", 10],
+  ]);
+  assert.equal(calculateWeekMinutes(october, "2026-10-25"), 25);
+  // Primavera: el domingo 29 de marzo de 2026 cambia la hora; la semana empieza el lunes 23.
+  const march = sessionsFrom([
+    ["2026-03-22", 100], // domingo anterior: fuera
+    ["2026-03-23", 15],
+    ["2026-03-29", 10],
+  ]);
+  assert.equal(calculateWeekMinutes(march, "2026-03-29"), 25);
+});
+
+test("semana: cruza el cambio de año", () => {
+  const sessions = sessionsFrom([
+    ["2026-12-27", 100], // domingo anterior: fuera
+    ["2026-12-28", 30], // lunes
+    ["2027-01-01", 20], // hoy
+  ]);
+  assert.equal(calculateWeekMinutes(sessions, "2027-01-01"), 50);
+});
+
+test("semana: las fechas futuras no suman", () => {
+  const sessions = sessionsFrom([
+    ["2026-11-15", 30],
+    ["2026-11-20", 60], // futuro
+  ]);
+  assert.equal(calculateWeekMinutes(sessions, "2026-11-15"), 30);
+});
+
+test("semana: no modifica la lista que recibe", () => {
+  const sessions = sessionsFrom([
+    ["2026-11-15", "30"],
+    ["2026-11-15", -10],
+    ["2026-11-1", 20],
+  ]);
+  const copy = structuredClone(sessions);
+  calculateWeekMinutes(sessions, "2026-11-15");
+  assert.deepEqual(sessions, copy);
+});
+
 // ---------- Mes ----------
 
 test("mes: días distintos desde el día 1 hasta hoy", () => {

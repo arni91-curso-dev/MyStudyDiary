@@ -24,6 +24,25 @@
       <div class="stats">
         <p class="best-streak">Mejor racha: <span id="best-streak-days">0</span> <span id="best-streak-unit">días</span></p>
         <p class="week-minutes"><span aria-hidden="true">🕒</span> Esta semana: <span id="week-minutes-total">0 min</span></p>
+
+        <!-- Objetivo semanal (spec 002). Formulario propio: Intro aquí no envía "Nueva sesión". -->
+        <section id="weekly-goal" class="weekly-goal" aria-labelledby="weekly-goal-title">
+          <h2 id="weekly-goal-title">Objetivo semanal</h2>
+          <form id="goal-form" novalidate>
+            <label for="goal-input">Objetivo semanal (min)</label>
+            <input type="text" id="goal-input" name="goal" inputmode="numeric" autocomplete="off" aria-describedby="goal-error">
+            <p id="goal-error" class="error" role="alert"></p>
+            <button type="submit">Guardar objetivo</button>
+          </form>
+          <div id="goal-status" class="goal-status" aria-live="polite">
+            <p id="goal-invite">Fija un objetivo semanal para ver cuánto te falta cada semana.</p>
+            <p id="goal-progress-text" class="goal-progress-text" hidden></p>
+            <p id="goal-done" class="goal-done" hidden>¡Objetivo cumplido!</p>
+          </div>
+          <div class="goal-bar" aria-hidden="true" hidden>
+            <div id="goal-bar-fill" class="goal-bar-fill"></div>
+          </div>
+        </section>
         <p class="month-days"><span aria-hidden="true">📅</span> Este mes: <span id="month-days-count">0</span> <span id="month-days-unit">días</span></p>
       </div>
     </section>

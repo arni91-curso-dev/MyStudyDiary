@@ -8,6 +8,7 @@ if (typeof buildHeatMap !== "function") {
 }
 
 const STORAGE_KEY = "study-diary-sessions";
+const GOAL_STORAGE_KEY = "study-diary-weekly-goal";
 
 // Elementos de la página
 const form = document.getElementById("session-form");
@@ -28,6 +29,14 @@ const heatMap = document.getElementById("heat-map");
 const heatMapEmpty = document.getElementById("heat-map-empty");
 const heatMapLegend = document.getElementById("heat-map-legend");
 const heatMapDetail = document.getElementById("heat-map-detail");
+const goalForm = document.getElementById("goal-form");
+const goalInput = document.getElementById("goal-input");
+const goalError = document.getElementById("goal-error");
+const goalInvite = document.getElementById("goal-invite");
+const goalProgressText = document.getElementById("goal-progress-text");
+const goalDone = document.getElementById("goal-done");
+const goalBar = document.querySelector(".goal-bar");
+const goalBarFill = document.getElementById("goal-bar-fill");
 
 // Día seleccionado en el mapa de calor y minutos de cada día del mapa.
 // Solo viven mientras la página está abierta: no se guardan.
@@ -64,6 +73,39 @@ function saveSessions(sessions) {
   }
 }
 
+// Objetivo semanal: devuelve el texto guardado tal cual (o null). Lo valida logic.js.
+// Si el navegador no deja leer, se trata como "sin objetivo".
+function loadGoal() {
+  try {
+    return localStorage.getItem(GOAL_STORAGE_KEY);
+  } catch (error) {
+    console.error("No se ha podido leer el objetivo semanal:", error);
+    return null;
+  }
+}
+
+// Guarda los minutos como texto sin ceros delante ("300"). Devuelve true si se ha podido.
+function saveGoal(minutes) {
+  try {
+    localStorage.setItem(GOAL_STORAGE_KEY, String(minutes));
+    return true;
+  } catch (error) {
+    console.error("No se ha podido guardar el objetivo semanal:", error);
+    return false;
+  }
+}
+
+// Borra el objetivo guardado. Devuelve true si se ha podido.
+function removeGoal() {
+  try {
+    localStorage.removeItem(GOAL_STORAGE_KEY);
+    return true;
+  } catch (error) {
+    console.error("No se ha podido borrar el objetivo semanal:", error);
+    return false;
+  }
+}
+
 // ---------- Pintar la página ----------
 
 function renderStreak(sessions) {
@@ -76,8 +118,22 @@ function renderStreak(sessions) {
   bestStreakUnit.textContent = bestStreak === 1 ? "día" : "días";
 }
 
-function renderWeekMinutes(sessions) {
-  weekMinutesTotal.textContent = formatMinutes(calculateWeekMinutes(sessions, todayKey()));
+function renderWeekMinutes(sessions, today) {
+  weekMinutesTotal.textContent = formatMinutes(calculateWeekMinutes(sessions, today));
+}
+
+function renderWeeklyGoal(sessions, today) {
+  const model = buildWeeklyGoalProgress(sessions, today, loadGoal());
+
+  goalInvite.hidden = model.hasGoal;
+  goalProgressText.hidden = !model.hasGoal;
+  goalBar.hidden = !model.hasGoal;
+  goalDone.hidden = !(model.hasGoal && model.isMet);
+
+  if (model.hasGoal) {
+    goalProgressText.textContent = model.text;
+    goalBarFill.style.width = `${model.percent}%`;
+  }
 }
 
 function renderMonthDays(sessions) {
@@ -262,8 +318,11 @@ heatMap.addEventListener("keydown", (event) => {
 
 function render() {
   const sessions = loadSessions();
+  // Un solo "hoy" para "Esta semana" y el objetivo: así las dos cifras siempre coinciden.
+  const today = todayKey();
   renderStreak(sessions);
-  renderWeekMinutes(sessions);
+  renderWeekMinutes(sessions, today);
+  renderWeeklyGoal(sessions, today);
   renderMonthDays(sessions);
   renderHeatMap(sessions);
   renderSessions(sessions);
@@ -329,8 +388,41 @@ form.addEventListener("submit", (event) => {
   render();
 });
 
+// ---------- Formulario del objetivo semanal ----------
+
+// Solo se valida al enviar (botón o Intro): mientras se escribe, el mensaje se queda visible.
+goalForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const result = parseWeeklyGoal(goalInput.value);
+  if (result.status === "error") {
+    // No se guarda nada y el texto escrito se queda en el campo.
+    goalError.textContent =
+      "El objetivo debe ser un número entero de minutos entre 1 y 10.080. Déjalo vacío o pon 0 para quitarlo.";
+    goalInput.focus();
+    return;
+  }
+
+  const saved = result.status === "valid" ? saveGoal(result.minutes) : removeGoal();
+  if (!saved) {
+    goalError.textContent = "No se ha podido guardar el objetivo. Inténtalo de nuevo.";
+    goalInput.focus();
+    return;
+  }
+
+  goalError.textContent = "";
+  if (result.status === "remove") {
+    goalInput.value = "";
+  }
+  render(); // recalcula todas las estadísticas con el "hoy" de ahora
+  goalInput.focus();
+});
+
 // ---------- Inicio ----------
 
 dateInput.value = todayKey();
 dateInput.max = todayKey();
+// El campo del objetivo muestra lo guardado sin ceros delante ("0300" → "300"), o vacío.
+const savedGoal = parseWeeklyGoal(loadGoal());
+goalInput.value = savedGoal.status === "valid" ? String(savedGoal.minutes) : "";
 render();
