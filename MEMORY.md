@@ -42,5 +42,5 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 - Capturas con Edge sin ventana (`--headless`): no baja de ~492 px de ancho; para ver el móvil, meter la página en un iframe de 375 px. Usar `--virtual-time-budget` para que terminen las animaciones.
 ## Próximos pasos
 - Flujo SDD: constitución → spec → clarificación → plan → tareas → implementación (una tarea cada vez, tests primero) → validación.
-- Spec 002: commit solo si el usuario lo pide. Opcional pendiente: leer el objetivo una sola vez al cargar.
+- Spec 002 subida y fusionada; el objetivo guardado se lee una sola vez al cargar. README añadido. `main` protegida: cada cambio va en rama + PR con CI (privacidad + tests) en verde.
 - Último cambio previo: `formatMinutes` redondea al minuto (un total con decimales salía "4 h 2.8000000000000114 min" y desbordaba a 200 %) y el botón tiene borde en alto contraste.
